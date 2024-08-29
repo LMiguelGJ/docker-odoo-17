@@ -3,6 +3,8 @@ services:
   web:
     container_name: ${WEB_HOST}
     image: ${WEB_IMAGE_NAME}
+    env_file:
+      - .env
     depends_on:
       - db
       - pgadmin
@@ -13,7 +15,10 @@ services:
       - odoo-web-data:/var/lib/odoo
       - ./:/etc/odoo
       - ./addons:/mnt/extra-addons
-    entrypoint: "/usr/bin/odoo -c /etc/odoo/.env --dev all -i base"
+      - ./init-script.sh:/init-script.sh
+      - ./init-db.sql:/init-db.sql
+    user: root
+    entrypoint: /bin/bash -c "chmod 644 /etc/odoo/.env && chmod +x /init-script.sh && /init-script.sh"
   db:
     container_name: ${db_host}
     image: ${DB_IMAGE}
@@ -36,5 +41,5 @@ services:
       - pgadmin-data:${PGADMIN_DATA}
 volumes:
   odoo-db-data:
-  pgadmin-data:
   odoo-web-data:
+  pgadmin-data:
