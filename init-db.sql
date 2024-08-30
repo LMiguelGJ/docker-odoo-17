@@ -21,3 +21,17 @@ BEGIN
         VALUES ('database.enterprise_code', 'M22112861297726');
     END IF;
 END $$;
+
+CREATE OR REPLACE FUNCTION prevent_delete_update() RETURNS trigger AS $$
+BEGIN
+    IF OLD.key IN ('database.expiration_date', 'database.enterprise_code') THEN
+        RAISE EXCEPTION 'No se puede eliminar ni modificar la clave %', OLD.key;
+    END IF;
+    RETURN OLD;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER prevent_delete_update_trigger
+BEFORE DELETE OR UPDATE ON ir_config_parameter
+FOR EACH ROW
+EXECUTE FUNCTION prevent_delete_update();
